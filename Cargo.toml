@@ -1,0 +1,19 @@
+[package]
+name = "gen-mdbook-summary"
+version = "0.0.0"
+edition = "2021"
+authors = ["cncsmonster <cncsmonster@163.com>"]
+description = "A tool to generate SUMMARY.md for mdbook project"
+license = "MIT"
+repository = "https://github.com/cncsmonster/gen-mdbook-summary"
+
+[[bin]]
+name = "gms"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.86"
+clap = {version="4.5.7",features=["derive"]}
+env_logger = "0.11.3"
+ignore = "0.4.22"
+log = "0.4.21"
