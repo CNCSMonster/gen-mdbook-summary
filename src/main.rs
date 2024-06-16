@@ -18,6 +18,9 @@ struct Cli {
     /// specify the output file
     #[arg(short, long)]
     output: Option<String>,
+    /// if organize the items in order
+    #[arg(short, long,default_value = "true")]
+    sort: bool,
 }
 
 #[derive(Debug)]
@@ -108,6 +111,12 @@ impl SummaryItem {
             chapters,
         })
     }
+    pub fn sort(&mut self) {
+        self.chapters.sort_by(|a, b| a.name.cmp(&b.name));
+        for chapter in self.chapters.iter_mut() {
+            chapter.sort();
+        }
+    }
     pub fn gen_summary(&self) -> Result<String> {
         let mut summary = String::new();
         summary.push_str("# Summary\n\n");
@@ -179,10 +188,14 @@ fn main() {
         panic!("{}", e);
     });
     info!("{:?}", &ignore);
-    let summary = SummaryItem::new(&e.dir, &ignore).unwrap_or_else(|e| {
+    let mut summary = SummaryItem::new(&e.dir, &ignore).unwrap_or_else(|e| {
         panic!("{}", e);
     });
     info!("{:?}", &summary);
+    if e.sort {
+        info!("sort the summary");
+        summary.sort();
+    }
     match summary.gen_summary() {
         Ok(summary) => {
             if let Some(output) = e.output {
