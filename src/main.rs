@@ -132,7 +132,7 @@ impl SummaryItem {
             if let Some(introduction) = &self.introduction {
                 item.push_str(format!("- [{}]({})", &self.name, introduction).as_str());
             } else {
-                item.push_str(format!("- [{}]", &self.name).as_str());
+                item.push_str(format!("- [{}]()", &self.name).as_str());
             }
             for chapter in self.chapters.iter() {
                 item.push('\n');
