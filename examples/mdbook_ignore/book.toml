@@ -1,0 +1,6 @@
+[book]
+authors = ["cncsmonster"]
+language = "en"
+multilingual = false
+src = "src"
+title = "mdbook_ignore"
