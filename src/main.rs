@@ -44,8 +44,7 @@ impl SummaryItem {
             .to_str()
             .ok_or(anyhow!("[{}{}]cannot get str of  dir", file!(), line!()))?;
         let meta = fs::metadata(dir)?;
-        if meta.is_file() {
-            let name = dir
+        let name = dir
                 .split("/")
                 .last()
                 .ok_or(anyhow!("[{}:{}:{}]invalid name", file!(), line!(),column!()))?
@@ -54,6 +53,7 @@ impl SummaryItem {
                 .next()
                 .unwrap()
                 .to_string();
+        if meta.is_file() {
             return Ok(Self {
                 name,
                 path: PathBuf::from(dir),
@@ -71,8 +71,8 @@ impl SummaryItem {
         let mut introduction: Option<String> = None;
         let names = vec!["README.md", "readme.md", "README", "readme"];
         // check if the introduction file exists
-        for name in names {
-            let path = format!("{}/{}", dir, name);
+        for readme_name in names {
+            let path = format!("{}/{}", dir, readme_name);
             if Path::new(&path).exists() && !ignore.is_ignore(&path) {
                 introduction = Some(path);
                 break;
@@ -96,8 +96,6 @@ impl SummaryItem {
             }
             chapters.push(Self::new(path_str, ignore)?);
         }
-
-        let name = dir.split("/").last().unwrap().to_string();
         let path = PathBuf::from(dir);
         Ok(Self {
             name,
