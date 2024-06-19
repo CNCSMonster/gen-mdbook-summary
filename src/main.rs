@@ -1,13 +1,13 @@
 use std::{
     collections::HashSet,
     fs,
-    path::{Path, PathBuf},
+    path::{Path, PathBuf}, process::exit,
 };
 
 use anyhow::{anyhow, Result};
 
 use clap::Parser;
-use log::info;
+use log::{error, info};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -21,6 +21,10 @@ struct Cli {
     /// if organize the items in order
     #[arg(short, long,default_value = "true")]
     sort: bool,
+    #[arg(short,long,default_value = "mdbook.ignore",
+    help = "specify the ignore file ,using .gitignore grammary,
+    matched files will be ignored.")]
+    ignore: String,
 }
 
 #[derive(Debug)]
@@ -160,11 +164,11 @@ pub struct Ignore {
     unignored: HashSet<String>,
 }
 impl Ignore {
-    pub fn new(dir: &str) -> Result<Self> {
+    pub fn new(dir: &str,ignore_file:&str) -> Result<Self> {
         use ignore::WalkBuilder;
         let mut unignored = HashSet::new();
         for result in WalkBuilder::new(dir)
-            .add_custom_ignore_filename("mdbook.ignore")
+            .add_custom_ignore_filename(ignore_file)
             .build()
         {
             let result = result?;
@@ -184,12 +188,14 @@ fn main() {
     // set env_logger
     env_logger::init();
     let e = Cli::parse();
-    let ignore = Ignore::new(&e.dir).unwrap_or_else(|e| {
-        panic!("{}", e);
+    let ignore = Ignore::new(&e.dir,&e.ignore).unwrap_or_else(|e| {
+        error!("{}", e);
+        exit(-1);
     });
     info!("{:?}", &ignore);
     let mut summary = SummaryItem::new(&e.dir, &ignore).unwrap_or_else(|e| {
-        panic!("{}", e);
+        error!("{}", e);
+        exit(-1);
     });
     info!("{:?}", &summary);
     if e.sort {
@@ -201,7 +207,8 @@ fn main() {
             if let Some(output) = e.output {
                 info!("output SUMMARY.md to {}", output);
                 if let Err(e) = fs::write(output, summary) {
-                    panic!("{}", e);
+                    error!("{}", e);
+                    exit(-1);
                 }
             } else {
                 println!("{}", summary);
