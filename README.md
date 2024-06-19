@@ -6,7 +6,6 @@ This is a simple tool to generate a `SUMMARY.md` file for a [mdBook](https://git
 
 ## Installation and Usage
 
-
 quick start:
 
 ```zsh
@@ -18,6 +17,8 @@ mkdir my-mdbook && cd my-mdbook && mdbook init
 echo "**/readme.md" > mdbook.ignore
 # generate a summary file
 gms -d src -o src/SUMMARY.md
+# serve the mdbook,and then visit http://localhost:3000
+mdbook serve
 ```
 
 for more usage, please check the help message:
@@ -25,6 +26,8 @@ for more usage, please check the help message:
 ```zsh
 gms --help
 ```
+
+and the [examples](./example) directory.
 
 ## License
 
