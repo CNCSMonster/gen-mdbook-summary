@@ -1,6 +1,6 @@
 [package]
 name = "gen-mdbook-summary"
-version = "0.0.3"
+version = "0.0.4"
 edition = "2021"
 authors = ["cncsmonster <cncsmonster@163.com>"]
 description = "A tool to generate SUMMARY.md for mdbook project"
