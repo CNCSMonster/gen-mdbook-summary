@@ -48,7 +48,8 @@ impl SummaryItem {
             let name = dir
                 .split("/")
                 .last()
-                .ok_or(anyhow!("[{}{}]invalid name", file!(), line!()))?
+                .ok_or(anyhow!("[{}:{}:{}]invalid name", file!(), line!(),column!()))?
+                .trim()
                 .split(".")
                 .next()
                 .unwrap()
@@ -93,17 +94,7 @@ impl SummaryItem {
                 info!("path_str {} is readme.md,skip", path_str);
                 continue;
             }
-            if path.is_dir() {
-                chapters.push(Self::new(path_str, ignore)?);
-            } else {
-                let name = path.file_stem().unwrap().to_str().unwrap().to_string();
-                chapters.push(Self {
-                    name,
-                    path,
-                    introduction: None,
-                    chapters: Vec::new(),
-                });
-            }
+            chapters.push(Self::new(path_str, ignore)?);
         }
 
         let name = dir.split("/").last().unwrap().to_string();
