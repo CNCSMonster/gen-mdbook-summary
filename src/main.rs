@@ -50,20 +50,8 @@ impl SummaryItem {
             .to_str()
             .ok_or(anyhow!("[{}{}]cannot get str of  dir", file!(), line!()))?;
         let meta = fs::metadata(dir)?;
-        let name = dir
-            .split("/")
-            .last()
-            .ok_or(anyhow!(
-                "[{}:{}:{}]invalid name",
-                file!(),
-                line!(),
-                column!()
-            ))?
-            .trim()
-            .split(".")
-            .next()
-            .unwrap()
-            .to_string();
+        let name = Self::item_name_from_path_str(dir)?.to_string();
+
         if meta.is_file() {
             return Ok(Self {
                 name,
@@ -160,6 +148,29 @@ impl SummaryItem {
         info!("{item}");
         Ok(item)
     }
+
+    fn item_name_from_path_str(path_name: &str) -> Result<String> {
+        let name = path_name
+            .split("/")
+            .last()
+            .ok_or(anyhow!(
+                "[{}:{}:{}]invalid name",
+                file!(),
+                line!(),
+                column!()
+            ))?
+            .trim();
+
+        // remove name's extension
+        let name = if Path::new(path_name).is_dir() {
+            name.to_string()
+        } else {
+            let name: Vec<&str> = name.split(".").collect();
+            name[..name.len() - 1].join(".")
+        };
+
+        Ok(name)
+    }
 }
 
 #[derive(Debug)]
@@ -221,5 +232,34 @@ fn main() {
         Err(e) => {
             panic!("{}", e);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::SummaryItem;
+
+    #[test]
+    fn t_item_name() {
+        // enter temp dir
+        let temp_dir = std::env::temp_dir();
+        let temp_dir = temp_dir.join("test_item_name");
+        std::fs::create_dir_all(&temp_dir).unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        fn test(p: &str, is_dir: bool, expect: &str) {
+            if is_dir {
+                std::fs::create_dir_all(p).unwrap();
+            }
+            let name = SummaryItem::item_name_from_path_str(p).unwrap();
+            if is_dir {
+                std::fs::remove_dir_all(p).unwrap();
+            }
+            assert_eq!(name, expect);
+        }
+
+        test("README.md", false, "README");
+        test("One.AA.md", false, "One.AA");
+        test("blog/Pro/readme.md", false, "readme");
     }
 }
