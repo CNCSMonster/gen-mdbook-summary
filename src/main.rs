@@ -1,7 +1,8 @@
 use std::{
     collections::HashSet,
     fs,
-    path::{Path, PathBuf}, process::exit,
+    path::{Path, PathBuf},
+    process::exit,
 };
 
 use anyhow::{anyhow, Result};
@@ -19,11 +20,15 @@ struct Cli {
     #[arg(short, long)]
     output: Option<String>,
     /// if organize the items in order
-    #[arg(short, long,default_value = "true")]
+    #[arg(short, long, default_value = "true")]
     sort: bool,
-    #[arg(short,long,default_value = "mdbook.ignore",
-    help = "specify the ignore file ,using .gitignore grammary,
-    matched files will be ignored.")]
+    #[arg(
+        short,
+        long,
+        default_value = "mdbook.ignore",
+        help = "specify the ignore file ,using .gitignore grammar,
+    matched files will be ignored."
+    )]
     ignore: String,
 }
 
@@ -34,6 +39,7 @@ struct SummaryItem {
     introduction: Option<String>,
     chapters: Vec<SummaryItem>,
 }
+
 impl SummaryItem {
     pub fn new(dir: &str, ignore: &Ignore) -> anyhow::Result<Self> {
         info!("try to create SummaryItem from {}", dir);
@@ -45,14 +51,19 @@ impl SummaryItem {
             .ok_or(anyhow!("[{}{}]cannot get str of  dir", file!(), line!()))?;
         let meta = fs::metadata(dir)?;
         let name = dir
-                .split("/")
-                .last()
-                .ok_or(anyhow!("[{}:{}:{}]invalid name", file!(), line!(),column!()))?
-                .trim()
-                .split(".")
-                .next()
-                .unwrap()
-                .to_string();
+            .split("/")
+            .last()
+            .ok_or(anyhow!(
+                "[{}:{}:{}]invalid name",
+                file!(),
+                line!(),
+                column!()
+            ))?
+            .trim()
+            .split(".")
+            .next()
+            .unwrap()
+            .to_string();
         if meta.is_file() {
             return Ok(Self {
                 name,
@@ -104,12 +115,14 @@ impl SummaryItem {
             chapters,
         })
     }
+
     pub fn sort(&mut self) {
         self.chapters.sort_by(|a, b| a.name.cmp(&b.name));
         for chapter in self.chapters.iter_mut() {
             chapter.sort();
         }
     }
+
     pub fn gen_summary(&self) -> Result<String> {
         let mut summary = String::new();
         summary.push_str("# Summary\n\n");
@@ -124,6 +137,7 @@ impl SummaryItem {
         }
         Ok(summary)
     }
+
     pub fn item(&self, depth: usize) -> Result<String> {
         let mut item = String::new();
         for _ in 0..depth {
@@ -152,8 +166,9 @@ impl SummaryItem {
 pub struct Ignore {
     unignored: HashSet<String>,
 }
+
 impl Ignore {
-    pub fn new(dir: &str,ignore_file:&str) -> Result<Self> {
+    pub fn new(dir: &str, ignore_file: &str) -> Result<Self> {
         use ignore::WalkBuilder;
         let mut unignored = HashSet::new();
         for result in WalkBuilder::new(dir)
@@ -176,24 +191,24 @@ impl Ignore {
 fn main() {
     // set env_logger
     env_logger::init();
-    let e = Cli::parse();
-    let ignore = Ignore::new(&e.dir,&e.ignore).unwrap_or_else(|e| {
+    let cli = Cli::parse();
+    let ignore = Ignore::new(&cli.dir, &cli.ignore).unwrap_or_else(|e| {
         error!("{}", e);
         exit(-1);
     });
     info!("{:?}", &ignore);
-    let mut summary = SummaryItem::new(&e.dir, &ignore).unwrap_or_else(|e| {
+    let mut summary = SummaryItem::new(&cli.dir, &ignore).unwrap_or_else(|e| {
         error!("{}", e);
         exit(-1);
     });
     info!("{:?}", &summary);
-    if e.sort {
+    if cli.sort {
         info!("sort the summary");
         summary.sort();
     }
     match summary.gen_summary() {
         Ok(summary) => {
-            if let Some(output) = e.output {
+            if let Some(output) = cli.output {
                 info!("output SUMMARY.md to {}", output);
                 if let Err(e) = fs::write(output, summary) {
                     error!("{}", e);
