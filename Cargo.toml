@@ -1,7 +1,7 @@
 [package]
 name = "gen-mdbook-summary"
-version = "0.0.6"
-edition = "2021"
+version = "0.0.7"
+edition = "2024"
 authors = ["cncsmonster <cncsmonster@163.com>"]
 description = "A tool to generate SUMMARY.md for mdbook project"
 license = "MIT"
@@ -13,7 +13,8 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.86"
-clap = {version="4.5.7",features=["derive"]}
+clap = { version = "4.5.7", features = ["derive"] }
 env_logger = "0.11.3"
 ignore = "0.4.22"
+indoc = "2.0.6"
 log = "0.4.21"
