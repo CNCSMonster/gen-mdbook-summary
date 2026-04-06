@@ -5,15 +5,13 @@ use std::{
 
 use anyhow::{Context, bail};
 use log::info;
-use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, utf8_percent_encode};
 
-// 定义 URL 编码字符集（保留 - _ . ~ 等安全字符和路径分隔符）
-const URLENCODE_FRAGMENT: &AsciiSet = &NON_ALPHANUMERIC
-    .remove(b'-')
-    .remove(b'_')
-    .remove(b'.')
-    .remove(b'~')
-    .remove(b'/');
+/// 对路径进行简单转义，只处理空格
+/// mdbook 的 SUMMARY.md 使用文件系统路径，不是 URL，不需要完整的 URL 编码
+fn escape_path(path: &str) -> String {
+    // mdbook 支持 Unicode 文件名，只需转义空格
+    path.replace(' ', "%20")
+}
 
 #[derive(Debug)]
 pub struct SummaryItem {
@@ -148,13 +146,12 @@ impl SummaryItem {
             .to_str()
             .with_context(|| format!("[{}:{}]", file!(), line!(),))?;
 
-        // URL 编码路径
-        let encoded_path = utf8_percent_encode(path_str, URLENCODE_FRAGMENT).to_string();
+        // 只转义空格，mdbook 支持 Unicode 文件名
+        let encoded_path = escape_path(path_str);
 
         if self.absolute_path.is_dir() {
             if let Some(introduction) = &self.introduction {
-                let encoded_intro =
-                    utf8_percent_encode(introduction, URLENCODE_FRAGMENT).to_string();
+                let encoded_intro = escape_path(introduction);
                 item.push_str(format!("- [{}]({})", &self.name, encoded_intro).as_str());
             } else {
                 item.push_str(format!("- [{}]()", &self.name).as_str());
