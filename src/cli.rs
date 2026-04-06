@@ -82,7 +82,10 @@ pub fn handle_gen(gen_args: &GenArgs) -> anyhow::Result<()> {
         exit(-1);
     });
     info!("{:?}", &ignore);
-    let mut summary = SummaryItem::new(&gen_args.dir, &ignore).unwrap_or_else(|e| {
+
+    // 使用绝对路径作为 base_dir
+    let base_dir = std::path::Path::new(&gen_args.dir).canonicalize()?;
+    let mut summary = SummaryItem::new(&gen_args.dir, &ignore, &base_dir).unwrap_or_else(|e| {
         error!("{}", e);
         exit(-1);
     });

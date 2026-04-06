@@ -5,29 +5,53 @@ use std::{
 
 use anyhow::{Context, bail};
 use log::info;
+use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, utf8_percent_encode};
+
+// 定义 URL 编码字符集（保留 - _ . ~ 等安全字符和路径分隔符）
+const URLENCODE_FRAGMENT: &AsciiSet = &NON_ALPHANUMERIC
+    .remove(b'-')
+    .remove(b'_')
+    .remove(b'.')
+    .remove(b'~')
+    .remove(b'/');
 
 #[derive(Debug)]
 pub struct SummaryItem {
     name: String,
-    path: PathBuf,
+    path: PathBuf,          // 相对路径
+    absolute_path: PathBuf, // 绝对路径（用于文件系统操作）
     introduction: Option<String>,
     chapters: Vec<SummaryItem>,
 }
 
 impl SummaryItem {
-    pub fn new(dir: &str, ignore: &Ignore) -> anyhow::Result<Self> {
+    pub fn new(dir: &str, ignore: &Ignore, base_dir: &Path) -> anyhow::Result<Self> {
         info!("try to create SummaryItem from {}", dir);
         let mut chapters = Vec::new();
-        let dir = Path::new(dir).canonicalize()?;
-        // check if the dir is a file
-        let dir = dir.display().to_string();
+        let absolute_path = Path::new(dir).canonicalize()?;
+
+        // 计算相对路径
+        let relative_path = absolute_path
+            .strip_prefix(base_dir)
+            .map(|p| p.to_path_buf())
+            .unwrap_or_else(|_| absolute_path.clone());
+
+        // 如果相对路径为空，使用 "." 表示当前目录
+        let relative_path = if relative_path.as_os_str().is_empty() {
+            PathBuf::from(".")
+        } else {
+            relative_path
+        };
+
+        let dir = absolute_path.display().to_string();
         let meta = std::fs::metadata(&dir)?;
         let name = Self::item_name_from_path_str(&dir)?.to_string();
 
         if meta.is_file() {
             return Ok(Self {
                 name,
-                path: PathBuf::from(dir),
+                path: relative_path,
+                absolute_path,
                 introduction: None,
                 chapters,
             });
@@ -45,7 +69,21 @@ impl SummaryItem {
         for readme_name in names {
             let path = format!("{}/{}", dir, readme_name);
             if Path::new(&path).exists() && !ignore.is_ignore(&path) {
-                introduction = Some(path);
+                // 存储相对路径
+                let intro_absolute = Path::new(&path).canonicalize()?;
+                let intro_relative = intro_absolute
+                    .strip_prefix(base_dir)
+                    .map(|p| p.to_path_buf())
+                    .unwrap_or_else(|_| intro_absolute.clone());
+
+                // 如果相对路径为空，使用 "." 表示当前目录
+                let intro_relative = if intro_relative.as_os_str().is_empty() {
+                    PathBuf::from(".")
+                } else {
+                    intro_relative
+                };
+
+                introduction = Some(intro_relative.to_string_lossy().to_string());
                 break;
             }
         }
@@ -63,12 +101,13 @@ impl SummaryItem {
                 info!("path_str {} is readme.md,skip", path_str);
                 continue;
             }
-            chapters.push(Self::new(path_str, ignore)?);
+            chapters.push(Self::new(path_str, ignore, base_dir)?);
         }
-        let path = PathBuf::from(&dir);
+        let path = relative_path;
         Ok(Self {
             name,
             path,
+            absolute_path,
             introduction,
             chapters,
         })
@@ -84,7 +123,7 @@ impl SummaryItem {
     pub fn gen_summary(&self) -> anyhow::Result<String> {
         let mut summary = String::new();
         summary.push_str("# Summary\n\n");
-        if self.path.is_dir() {
+        if self.absolute_path.is_dir() {
             for chapter in &self.chapters {
                 summary.push('\n');
                 summary.push_str(&chapter.item(0)?);
@@ -108,9 +147,15 @@ impl SummaryItem {
             .path
             .to_str()
             .with_context(|| format!("[{}:{}]", file!(), line!(),))?;
-        if self.path.is_dir() {
+
+        // URL 编码路径
+        let encoded_path = utf8_percent_encode(path_str, URLENCODE_FRAGMENT).to_string();
+
+        if self.absolute_path.is_dir() {
             if let Some(introduction) = &self.introduction {
-                item.push_str(format!("- [{}]({})", &self.name, introduction).as_str());
+                let encoded_intro =
+                    utf8_percent_encode(introduction, URLENCODE_FRAGMENT).to_string();
+                item.push_str(format!("- [{}]({})", &self.name, encoded_intro).as_str());
             } else {
                 item.push_str(format!("- [{}]()", &self.name).as_str());
             }
@@ -119,7 +164,7 @@ impl SummaryItem {
                 item.push_str(&chapter.item(depth + 1)?);
             }
         } else {
-            item.push_str(&format!("- [{}]({})", &self.name, path_str));
+            item.push_str(&format!("- [{}]({})", &self.name, encoded_path));
         }
         info!("{item}");
         Ok(item)
