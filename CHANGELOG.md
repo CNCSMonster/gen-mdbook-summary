@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.9] - 2026-04-07
+
+### Fixed
+- 修复 URL 过度编码问题
+  - mdbook 的 SUMMARY.md 使用文件系统路径而非 URL
+  - 之前的完整 URL 编码导致文件名过长错误
+  - 现在只转义空格字符，支持 Unicode 文件名
+
 ## [0.0.8] - 2026-04-07
 
 ### Fixed
