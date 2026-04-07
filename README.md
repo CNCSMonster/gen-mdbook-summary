@@ -1,34 +1,32 @@
 # gen-mdbook-summary
 
-## Description
+A simple CLI tool to generate `SUMMARY.md` for [mdBook](https://github.com/rust-lang/mdBook) projects.
 
-This is a simple tool to generate a `SUMMARY.md` file for a [mdBook](https://github.com/rust-lang/mdBook) project.
+## Installation
 
-## Installation and Usage
-
-quick start:
-
-```zsh
-# install the tool
+```bash
 cargo install gen-mdbook-summary
-# create a mdbook project
-mkdir my-mdbook && cd my-mdbook && mdbook init
-# create a ignore file for gen-mdbook-summary
-echo "**/readme.md" > mdbook.ignore
-# generate a summary file
+```
+
+## Quick Start
+
+```bash
+# Initialize ignore file (optional)
+gms init
+
+# Generate SUMMARY.md
 gms -d src -o src/SUMMARY.md
-# serve the mdbook,and then visit http://localhost:3000
+
+# Serve with mdbook
 mdbook serve
 ```
 
-for more usage, please check the help message:
+## Documentation
 
-```zsh
-gms --help
-```
-
-and the [examples](./example) directory.
+- **[HELP.md](./HELP.md)** - Complete usage guide
+- **[examples/](./examples/)** - Usage examples
+- **Command line**: `gms --help`
 
 ## License
 
-[LICENSE](./LICENSE)
+MIT - See [LICENSE](./LICENSE)
