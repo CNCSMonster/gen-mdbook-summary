@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.11] - 2026-04-07
+
+### Fixed
+- **修复 Windows 兼容性** - 使用跨平台的 `Path::file_name()` 替代硬编码 `/` 分割路径
+  - 之前在 Windows 上生成的章节名称会是完整路径而不是文件名
+  - 现在在所有平台上都能正确提取文件名
+
+### CI
+- **优化 CI 配置** - Clippy 只在 Ubuntu 运行，单元测试在 Ubuntu/Windows/macOS 三平台运行
+  - 减少不必要的 CI 资源消耗
+  - 确保跨平台兼容性验证
+
 ## [0.0.10] - 2026-04-07
 
 ### Fixed

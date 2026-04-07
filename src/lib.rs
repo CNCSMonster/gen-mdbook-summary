@@ -196,19 +196,22 @@ impl SummaryItem {
     }
 
     fn item_name_from_path_str(path_name: &str) -> anyhow::Result<String> {
-        let name = path_name
-            .split("/")
-            .last()
+        // 使用 Path 来获取文件名，兼容所有平台
+        let path = Path::new(path_name);
+        let name = path
+            .file_name()
+            .and_then(|n| n.to_str())
             .ok_or(anyhow::anyhow!(
-                "[{}:{}:{}]invalid name",
+                "[{}:{}:{}]invalid name: {}",
                 file!(),
                 line!(),
-                column!()
+                column!(),
+                path_name
             ))?
             .trim();
 
         // remove name's extension
-        let name = if Path::new(path_name).is_dir() {
+        let name = if path.is_dir() {
             name.to_string()
         } else {
             let name: Vec<&str> = name.split(".").collect();

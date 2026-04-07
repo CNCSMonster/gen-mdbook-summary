@@ -13,11 +13,7 @@ env:
 
 jobs:
   clippy:
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -28,6 +24,25 @@ jobs:
 
       - name: Clippy
         run: cargo clippy --all-features --all-targets -- -D warnings
+
+  test:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: windows-latest
+          - os: macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache ~/.cargo and target
+        uses: Swatinem/rust-cache@v2
+
+      - name: Test
+        run: cargo test --all-features
 
   rustfmt:
     runs-on: ubuntu-latest
