@@ -1,0 +1,9 @@
+book.toml
+.gitignore
+book
+*.doc
+*.pdf
+*.png
+*.xlsx
+*.pptx
+*.jpg
