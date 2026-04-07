@@ -85,10 +85,22 @@ pub fn handle_gen(gen_args: &GenArgs) -> anyhow::Result<()> {
 
     // 使用绝对路径作为 base_dir
     let base_dir = std::path::Path::new(&gen_args.dir).canonicalize()?;
-    let mut summary = SummaryItem::new(&gen_args.dir, &ignore, &base_dir).unwrap_or_else(|e| {
-        error!("{}", e);
-        exit(-1);
+
+    // 解析输出文件路径
+    let output_path = gen_args.output.as_ref().map(|o| {
+        let path = std::path::Path::new(o);
+        if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            std::env::current_dir().unwrap().join(path)
+        }
     });
+
+    let mut summary = SummaryItem::new(&gen_args.dir, &ignore, &base_dir, output_path.as_deref())
+        .unwrap_or_else(|e| {
+            error!("{}", e);
+            exit(-1);
+        });
     info!("{:?}", &summary);
     if gen_args.sort {
         info!("sort the summary");

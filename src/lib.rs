@@ -23,7 +23,12 @@ pub struct SummaryItem {
 }
 
 impl SummaryItem {
-    pub fn new(dir: &str, ignore: &Ignore, base_dir: &Path) -> anyhow::Result<Self> {
+    pub fn new(
+        dir: &str,
+        ignore: &Ignore,
+        base_dir: &Path,
+        output_file: Option<&Path>,
+    ) -> anyhow::Result<Self> {
         info!("try to create SummaryItem from {}", dir);
         let mut chapters = Vec::new();
         let absolute_path = Path::new(dir).canonicalize()?;
@@ -91,6 +96,29 @@ impl SummaryItem {
             let path = entry.path();
             let path_str = &path.display().to_string();
             info!("{}", path_str);
+
+            // 自动忽略 SUMMARY.md 文件（通过路径比较，不依赖文件是否存在）
+            if let Some(output) = output_file {
+                // 检查是否是输出文件（比较绝对路径）
+                let output_absolute = if output.is_absolute() {
+                    output.to_path_buf()
+                } else {
+                    std::env::current_dir().unwrap().join(output)
+                };
+
+                // 规范化路径进行比较
+                let entry_absolute = if path.is_absolute() {
+                    path.to_path_buf()
+                } else {
+                    std::env::current_dir().unwrap().join(&path)
+                };
+
+                if entry_absolute == output_absolute {
+                    info!("path_str {} is output file, skip", path_str);
+                    continue;
+                }
+            }
+
             if ignore.is_ignore(path_str) {
                 info!("ignore {}", path_str);
                 continue;
@@ -99,7 +127,7 @@ impl SummaryItem {
                 info!("path_str {} is readme.md,skip", path_str);
                 continue;
             }
-            chapters.push(Self::new(path_str, ignore, base_dir)?);
+            chapters.push(Self::new(path_str, ignore, base_dir, output_file)?);
         }
         let path = relative_path;
         Ok(Self {

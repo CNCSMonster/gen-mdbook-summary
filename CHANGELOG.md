@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.10] - 2026-04-07
+
+### Fixed
+- 自动忽略输出文件，避免 SUMMARY.md 被包含在生成结果中
+- 支持输出到任意位置（src/SUMMARY.md、./SUMMARY.md、docs/SUMMARY.md 等）
+
 ## [0.0.9] - 2026-04-07
 
 ### Fixed
