@@ -1,78 +1,60 @@
 use std::process::exit;
 
-use clap::Args;
-use clap::Parser;
+use argh::FromArgs;
 use gen_mdbook_summary::Ignore;
 use gen_mdbook_summary::SummaryItem;
 use log::error;
 use log::info;
 
-use indoc::indoc;
-
 pub const IGNORE_FILE: &str = ".gmsignore";
 
-#[derive(Parser)]
-#[command(version, about, long_about = None)]
-pub struct Cli2 {
-    #[command(subcommand)]
+#[derive(FromArgs)]
+/// A tool to generate SUMMARY.md for mdbook project
+pub struct Args {
+    #[argh(subcommand)]
     pub cmd: Option<Cmd>,
-    #[command(flatten)]
-    pub gen_args: GenArgs,
-}
 
-#[derive(Clone, clap::Subcommand)]
-pub enum Cmd {
-    /// initialize the .gmsignore file
-    /// This file is the default ignore file for the summary generator,
-    /// it will be used to ignore files that should not be included in the summary.
-    /// You can modify it to suit your needs.
-    /// If you want to use a different ignore file, you can specify it with the --ignore option.
-    #[command(about = "initialize the .gmsignore file")]
-    Init,
-    /// generate the summary file
-    Gen(GenArgs),
-}
-
-#[derive(Args, Clone, Debug)]
-pub struct GenArgs {
-    /// Optional name to operate on
-    #[arg(short, long, default_value = "src")]
+    /// optional name to operate on
+    #[argh(option, short = 'd', default = "String::from(\"src\")")]
     pub dir: String,
     /// specify the output file
-    #[arg(short, long)]
+    #[argh(option, short = 'o')]
     pub output: Option<String>,
     /// if organize the items in order
-    #[arg(short, long, default_value = "true")]
+    #[argh(option, short = 's', default = "true")]
     pub sort: bool,
-    #[arg(
-        short,
-        long,
-        default_value = IGNORE_FILE,
-        help = "specify the ignore file ,using .gitignore grammar,
-    matched files will be ignored."
-    )]
+    /// specify the ignore file
+    #[argh(option, short = 'i', default = "String::from(\".gmsignore\")")]
     pub ignore: String,
 }
 
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-pub struct Cli {
-    /// Optional name to operate on
-    #[arg(short, long, default_value = "src")]
+#[derive(FromArgs)]
+#[argh(subcommand)]
+pub enum Cmd {
+    Init(InitArgs),
+    Gen(GenArgs),
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "init")]
+/// initialize the .gmsignore file
+pub struct InitArgs {}
+
+#[derive(FromArgs, Debug, Clone)]
+#[argh(subcommand, name = "gen")]
+/// generate the summary file
+pub struct GenArgs {
+    /// optional name to operate on
+    #[argh(option, short = 'd', default = "String::from(\"src\")")]
     pub dir: String,
     /// specify the output file
-    #[arg(short, long)]
+    #[argh(option, short = 'o')]
     pub output: Option<String>,
     /// if organize the items in order
-    #[arg(short, long, default_value = "true")]
+    #[argh(option, short = 's', default = "true")]
     pub sort: bool,
-    #[arg(
-        short,
-        long,
-        default_value = IGNORE_FILE,
-        help = "specify the ignore file ,using .gitignore grammar,
-    matched files will be ignored."
-    )]
+    /// specify the ignore file
+    #[argh(option, short = 'i', default = "String::from(\".gmsignore\")")]
     pub ignore: String,
 }
 
@@ -128,17 +110,16 @@ pub fn handle_gen(gen_args: &GenArgs) -> anyhow::Result<()> {
 pub fn handle_init() -> anyhow::Result<()> {
     std::fs::write(
         IGNORE_FILE,
-        indoc! {r##"
-            book.toml
-            .gitignore
-            book
-            *.doc
-            *.pdf
-            *.png
-            *.xlsx
-            *.pptx
-            *.jpg
-        "##},
+        "book.toml
+.gitignore
+book
+*.doc
+*.pdf
+*.png
+*.xlsx
+*.pptx
+*.jpg
+",
     )?;
     Ok(())
 }

@@ -17,12 +17,12 @@ opt-level = "z"      # 优化大小而非速度
 lto = true           # 链接时优化
 codegen-units = 1    # 增加优化机会
 panic = "abort"      # 减小 panic 处理代码
-strip = true         # 移除符号表
+strip = "symbols"    # 移除符号表
 
+# 使用更轻量的命令行解析库
 [dependencies]
 anyhow = "1.0.86"
-clap = { version = "4.5.7", features = ["derive"] }
-env_logger = "0.11.3"
+argh = "0.1"
+env_logger = { version = "0.11.3", default-features = false, features = ["auto-color"] }
 ignore = "0.4.22"
-indoc = "2.0.6"
 log = "0.4.21"
