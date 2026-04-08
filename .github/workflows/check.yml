@@ -18,6 +18,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy
 
       - name: Cache ~/.cargo and target
         uses: Swatinem/rust-cache@v2
@@ -51,6 +53,8 @@ jobs:
         uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
 
       - name: Rustfmt
         run: cargo fmt --check
