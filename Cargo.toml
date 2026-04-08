@@ -11,6 +11,14 @@ repository = "https://github.com/cncsmonster/gen-mdbook-summary"
 name = "gms"
 path = "src/main.rs"
 
+# 优化二进制文件大小
+[profile.release]
+opt-level = "z"      # 优化大小而非速度
+lto = true           # 链接时优化
+codegen-units = 1    # 增加优化机会
+panic = "abort"      # 减小 panic 处理代码
+strip = true         # 移除符号表
+
 [dependencies]
 anyhow = "1.0.86"
 clap = { version = "4.5.7", features = ["derive"] }
