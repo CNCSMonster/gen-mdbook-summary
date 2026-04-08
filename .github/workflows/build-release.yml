@@ -34,7 +34,7 @@ jobs:
         if: matrix.target == 'riscv64gc-unknown-linux-gnu'
         run: sudo apt update && sudo apt install -yq gcc-riscv64-linux-gnu
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
         with:
           target: ${{ matrix.target }}
 
@@ -71,7 +71,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
         with:
           target: ${{ matrix.target }}
 
@@ -106,7 +106,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
         with:
           target: ${{ matrix.target }}
 
