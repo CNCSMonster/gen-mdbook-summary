@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **提供 gzexe 压缩版本** - Linux x86_64 平台额外提供压缩版本
+  - 文件大小从 1.2MB 减少到 530KB（减少 55%）
+  - 启动时间增加约 15ms
+  - 适用于带宽或存储受限的环境
+
+### Changed
+- **优化二进制大小** - 使用 argh 替代 clap 作为命令行解析库
+  - 减少约 100KB 大小
+  - 保持相同的功能
+
 ## [0.0.11] - 2026-04-07
 
 ### Fixed

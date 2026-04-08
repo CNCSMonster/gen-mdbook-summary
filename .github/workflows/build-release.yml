@@ -44,7 +44,7 @@ jobs:
       - name: Build
         run: cargo build --release --locked --target ${{ matrix.target }}
 
-      - name: Pack Artifact
+      - name: Pack Standard Artifact
         env:
           ARTIFACT_NAME: gen-mdbook-summary-${{ matrix.target }}
         run: |
@@ -53,11 +53,31 @@ jobs:
           cp README.md LICENSE -t "$ARTIFACT_NAME"
           tar -zcvf "$ARTIFACT_NAME.tar.gz" -C "$ARTIFACT_NAME" .
 
-      - name: Upload Artifact
+      - name: Pack gzexe Compressed Artifact (x86_64 only)
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        env:
+          ARTIFACT_NAME: gen-mdbook-summary-${{ matrix.target }}-gzexe
+        run: |
+          mkdir -p "$ARTIFACT_NAME"
+          cp target/${{ matrix.target }}/release/gms "$ARTIFACT_NAME/gms"
+          gzexe "$ARTIFACT_NAME/gms"
+          cp README.md LICENSE -t "$ARTIFACT_NAME"
+          tar -zcvf "$ARTIFACT_NAME.tar.gz" -C "$ARTIFACT_NAME" .
+          echo "Original size: $(du -h target/${{ matrix.target }}/release/gms | cut -f1)"
+          echo "Compressed size: $(du -h $ARTIFACT_NAME/gms | cut -f1)"
+
+      - name: Upload Standard Artifact
         uses: actions/upload-artifact@v4
         with:
           name: gen-mdbook-summary-${{ matrix.target }}.tar.gz
           path: gen-mdbook-summary-${{ matrix.target }}.tar.gz
+
+      - name: Upload gzexe Compressed Artifact (x86_64 only)
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        uses: actions/upload-artifact@v4
+        with:
+          name: gen-mdbook-summary-${{ matrix.target }}-gzexe.tar.gz
+          path: gen-mdbook-summary-${{ matrix.target }}-gzexe.tar.gz
 
   build-macos:
     strategy:
